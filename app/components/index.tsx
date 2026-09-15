@@ -95,7 +95,7 @@ const Main: FC<IMainProps> = () => {
   const hasSetInputs = (() => {
     if (!isNewConversation) { return true }
 
-    return isChatStarted
+    return true
   })()
 
   const conversationName = currConversationInfo?.name || t('app.chat.newChatDefaultName') as string
