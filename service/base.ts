@@ -152,7 +152,10 @@ const handleStream = (
   onNodeStarted?: IOnNodeStarted,
   onNodeFinished?: IOnNodeFinished,
 ) => {
-  if (!response.ok) { throw new Error('Network response was not ok') }
+  if (!response.ok) {
+    onCompleted?.(true)
+    throw new Error('Network response was not ok')
+  }
 
   const reader = response.body?.getReader()
   const decoder = new TextDecoder('utf-8')
@@ -161,106 +164,100 @@ const handleStream = (
   let isFirstMessage = true
 
   function read() {
-    let hasError = false
     reader?.read().then((result: any) => {
       if (result.done) {
-        // CORRECCIÓN: Si al cerrar el stream quedó un evento atascado en el buffer, procesarlo antes de salir
+        // Si al cerrar el stream quedó algo pendiente en el buffer, procesarlo
         if (buffer && buffer.trim().startsWith('data: ')) {
           try {
             const lastObj = JSON.parse(buffer.trim().substring(6)) as Record<string, any>
             if (lastObj.event === 'message_end') onMessageEnd?.(lastObj as MessageEnd)
             if (lastObj.event === 'workflow_finished') onWorkflowFinished?.(lastObj as WorkflowFinishedResponse)
           } catch (e) {
-            // Ignorar errores de parseo final
+            // ignorar error de parseo final
           }
         }
-        onCompleted && onCompleted()
+        // SIEMPRE marcar como completado al terminar la lectura del stream
+        onCompleted?.()
         return
       }
 
       buffer += decoder.decode(result.value, { stream: true })
       const lines = buffer.split('\n')
-      try {
-        lines.forEach((message) => {
-          if (message.startsWith('data: ')) { // check if it starts with data:
-            try {
-              bufferObj = JSON.parse(message.substring(6)) as Record<string, any>// remove data: and parse as json
-            }
-            catch (e) {
-              // mute handle message cut off
-              onData('', isFirstMessage, {
-                conversationId: bufferObj?.conversation_id,
-                messageId: bufferObj?.message_id,
-              })
-              return
-            }
-            if (bufferObj.status === 400 || !bufferObj.event) {
-              onData('', false, {
-                conversationId: undefined,
-                messageId: '',
-                errorMessage: bufferObj?.message,
-                errorCode: bufferObj?.code,
-              })
-              hasError = true
-              onCompleted?.(true)
-              return
-            }
-            if (bufferObj.event === 'message' || bufferObj.event === 'agent_message') {
-              // can not use format here. Because message is splited.
-              onData(unicodeToChar(bufferObj.answer), isFirstMessage, {
-                conversationId: bufferObj.conversation_id,
-                taskId: bufferObj.task_id,
-                messageId: bufferObj.id,
-              })
-              isFirstMessage = false
-            }
-            else if (bufferObj.event === 'agent_thought') {
-              onThought?.(bufferObj as ThoughtItem)
-            }
-            else if (bufferObj.event === 'message_file') {
-              onFile?.(bufferObj as VisionFile)
-            }
-            else if (bufferObj.event === 'message_end') {
-              onMessageEnd?.(bufferObj as MessageEnd)
-            }
-            else if (bufferObj.event === 'message_replace') {
-              onMessageReplace?.(bufferObj as MessageReplace)
-            }
-            else if (bufferObj.event === 'workflow_started') {
-              onWorkflowStarted?.(bufferObj as WorkflowStartedResponse)
-            }
-            else if (bufferObj.event === 'workflow_finished') {
-              onWorkflowFinished?.(bufferObj as WorkflowFinishedResponse)
-            }
-            else if (bufferObj.event === 'node_started') {
-              onNodeStarted?.(bufferObj as NodeStartedResponse)
-            }
-            else if (bufferObj.event === 'node_finished') {
-              onNodeFinished?.(bufferObj as NodeFinishedResponse)
-            }
+
+      // Procesar todas las líneas completas excepto la última (que puede estar fragmentada)
+      for (let i = 0; i < lines.length - 1; i++) {
+        const message = lines[i].trim()
+        if (message.startsWith('data: ')) {
+          try {
+            bufferObj = JSON.parse(message.substring(6)) as Record<string, any>
+          } catch (e) {
+            onData('', isFirstMessage, {
+              conversationId: bufferObj?.conversation_id,
+              messageId: bufferObj?.message_id,
+            })
+            continue
           }
-        })
-        buffer = lines[lines.length - 1]
+
+          if (bufferObj.status === 400 || !bufferObj.event) {
+            onData('', false, {
+              conversationId: undefined,
+              messageId: '',
+              errorMessage: bufferObj?.message,
+              errorCode: bufferObj?.code,
+            })
+            onCompleted?.(true)
+            return
+          }
+
+          if (bufferObj.event === 'message' || bufferObj.event === 'agent_message') {
+            onData(unicodeToChar(bufferObj.answer), isFirstMessage, {
+              conversationId: bufferObj.conversation_id,
+              taskId: bufferObj.task_id,
+              messageId: bufferObj.id,
+            })
+            isFirstMessage = false
+          }
+          else if (bufferObj.event === 'agent_thought') {
+            onThought?.(bufferObj as ThoughtItem)
+          }
+          else if (bufferObj.event === 'message_file') {
+            onFile?.(bufferObj as VisionFile)
+          }
+          else if (bufferObj.event === 'message_end') {
+            onMessageEnd?.(bufferObj as MessageEnd)
+          }
+          else if (bufferObj.event === 'message_replace') {
+            onMessageReplace?.(bufferObj as MessageReplace)
+          }
+          else if (bufferObj.event === 'workflow_started') {
+            onWorkflowStarted?.(bufferObj as WorkflowStartedResponse)
+          }
+          else if (bufferObj.event === 'workflow_finished') {
+            onWorkflowFinished?.(bufferObj as WorkflowFinishedResponse)
+          }
+          else if (bufferObj.event === 'node_started') {
+            onNodeStarted?.(bufferObj as NodeStartedResponse)
+          }
+          else if (bufferObj.event === 'node_finished') {
+            onNodeFinished?.(bufferObj as NodeFinishedResponse)
+          }
+        }
       }
-      catch (e) {
-        onData('', false, {
-          conversationId: undefined,
-          messageId: '',
-          errorMessage: `${e}`,
-        })
-        hasError = true
-        onCompleted?.(true)
-        return
-      }
-      if (!hasError) { read() }
-    }).catch(() => {
-      // Garantizar que la interfaz se libere si se corta la conexión
+
+      // Guardar el remanente incompleto en el buffer
+      buffer = lines[lines.length - 1]
+
+      // Seguir leyendo el siguiente chunk
+      read()
+    }).catch((err) => {
+      // Si la conexión se corta o falla, forzar el desbloqueo de la interfaz
+      console.error('Stream reading error:', err)
       onCompleted?.(true)
     })
   }
+
   read()
 }
-
 const baseFetch = (url: string, fetchOptions: any, { needAllResponseContent }: IOtherOptions) => {
   const options = Object.assign({}, baseOptions, fetchOptions)
 
