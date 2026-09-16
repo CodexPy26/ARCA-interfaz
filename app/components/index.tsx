@@ -296,6 +296,13 @@ const Main: FC<IMainProps> = () => {
 
   const [isResponding, { setTrue: setRespondingTrue, setFalse: setRespondingFalse }] = useBoolean(false)
   const [abortController, setAbortController] = useState<AbortController | null>(null)
+  const handleStop = () => {
+    if (abortController) {
+      abortController.abort()
+      setAbortController(null)
+    }
+    setRespondingFalse()
+  }
   const { notify } = Toast
   const logError = (message: string) => {
     notify({ type: 'error', message })
@@ -690,6 +697,7 @@ const Main: FC<IMainProps> = () => {
             hasSetInputs && (
               <div className='relative grow pc:w-[794px] max-w-full mobile:w-full pb-[180px] mx-auto mb-3.5' ref={chatListDomRef}>
                 <Chat
+                  key={currConversationId || 'new-chat'}
                   chatList={chatList}
                   onSend={handleSend}
                   onFeedback={handleFeedback}
@@ -697,6 +705,7 @@ const Main: FC<IMainProps> = () => {
                   checkCanSend={checkCanSend}
                   visionConfig={visionConfig}
                   fileConfig={fileConfig}
+                  onStop={handleStop}
                 />
               </div>)
           }
