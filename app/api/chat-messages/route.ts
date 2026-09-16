@@ -12,5 +12,11 @@ export async function POST(request: NextRequest) {
   } = body
   const { user } = getInfo(request)
   const res = await client.createChatMessage(inputs, query, user, responseMode, conversationId, files)
-  return new Response(res.data as any)
+  return new Response(res.data as any, {
+    headers: {
+      'Content-type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      'Connection': 'keep-alive',
+    },
+  })
 }
