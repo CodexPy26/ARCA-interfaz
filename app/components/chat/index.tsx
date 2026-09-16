@@ -227,17 +227,27 @@ const Chat: FC<IChatProps> = ({
               />
               <div className="absolute bottom-2 right-6 flex items-center h-8">
                 <div className={`${s.count} mr-3 h-5 leading-5 text-sm bg-gray-50 text-gray-500 px-2 rounded`}>{query.trim().length}</div>
-                <Tooltip
-                  selector='send-tip'
-                  htmlContent={
-                    <div>
-                      <div>{t('common.operation.send')} Enter</div>
-                      <div>{t('common.operation.lineBreak')} Shift Enter</div>
-                    </div>
-                  }
-                >
-                  <div className={`${s.sendBtn} w-8 h-8 cursor-pointer rounded-md`} onClick={handleSend}></div>
-                </Tooltip>
+                {isResponding ? (
+                  <div 
+                    className="w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 cursor-pointer rounded-md transition-colors"
+                    onClick={onStop}
+                    title="Detener respuesta"
+                  >
+                    <div className="w-3 h-3 bg-white rounded-sm" />
+                  </div>
+                ) : (
+                  <Tooltip
+                    selector='send-tip'
+                    htmlContent={
+                      <div>
+                        <div>{t('common.operation.send')} Enter</div>
+                        <div>{t('common.operation.lineBreak')} Shift Enter</div>
+                      </div>
+                    }
+                  >
+                    <div className={`${s.sendBtn} w-8 h-8 cursor-pointer rounded-md`} onClick={handleSend}></div>
+                  </Tooltip>
+                )}
               </div>
             </div>
           </div>
