@@ -159,13 +159,25 @@ const handleStream = (
   let buffer = ''
   let bufferObj: Record<string, any>
   let isFirstMessage = true
+
   function read() {
     let hasError = false
     reader?.read().then((result: any) => {
       if (result.done) {
+        // CORRECCIÓN: Si al cerrar el stream quedó un evento atascado en el buffer, procesarlo antes de salir
+        if (buffer && buffer.trim().startsWith('data: ')) {
+          try {
+            const lastObj = JSON.parse(buffer.trim().substring(6)) as Record<string, any>
+            if (lastObj.event === 'message_end') onMessageEnd?.(lastObj as MessageEnd)
+            if (lastObj.event === 'workflow_finished') onWorkflowFinished?.(lastObj as WorkflowFinishedResponse)
+          } catch (e) {
+            // Ignorar errores de parseo final
+          }
+        }
         onCompleted && onCompleted()
         return
       }
+
       buffer += decoder.decode(result.value, { stream: true })
       const lines = buffer.split('\n')
       try {
@@ -241,6 +253,9 @@ const handleStream = (
         return
       }
       if (!hasError) { read() }
+    }).catch(() => {
+      // Garantizar que la interfaz se libere si se corta la conexión
+      onCompleted?.(true)
     })
   }
   read()
