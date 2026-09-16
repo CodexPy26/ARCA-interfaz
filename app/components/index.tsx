@@ -189,6 +189,8 @@ const Main: FC<IMainProps> = () => {
   const createNewChat = () => {
     // if new chat is already exist, do not create new chat
     if (conversationList.some(item => item.id === '-1')) { return }
+    //limpieza de lista visual de mensajes.
+    setChatList([])
 
     setConversationList(produce(conversationList, (draft) => {
       draft.unshift({
