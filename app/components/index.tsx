@@ -664,10 +664,25 @@ const Main: FC<IMainProps> = () => {
   return (
     <div className='bg-gray-100'>
       <Header
-        title={APP_INFO.title}
+        title={conversationName || APP_INFO.title}
         isMobile={isMobile}
         onShowSideBar={showSidebar}
         onCreateNewChat={() => handleConversationIdChange('-1')}
+        onUpdateTitle={(newTitle) => {
+          //actualiza el nombre en la lista de conversaciones
+          setExistConversationInfo({
+            ...currConversationInfo,
+            name: newTitle,
+          })
+
+            //si la conversación existe en la lista lateral, se actualiza su nombre ahi tambien
+          setConversationList(produce(conversationList, (draft) => {
+            const current = draft.find(item => item.id === currConversationId)
+              if (current) {
+                current.name = newTitle
+              }
+          }))
+        }}
       />
       <div className="flex rounded-t-2xl bg-white overflow-hidden">
         {/* sidebar */}
