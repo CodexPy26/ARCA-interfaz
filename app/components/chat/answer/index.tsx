@@ -179,13 +179,17 @@ const Answer: FC<IAnswerProps> = ({
   return (
     <div key={id}>
       <div className="flex items-start">
-        <div className={`${s.answerIcon} w-10 h-10 shrink-0`}>
-          {isResponding
-            && (
-              <div className={s.typeingIcon}>
-                <LoadingAnim type="avatar" />
-              </div>
-            )}
+      <div className="relative w-10 h-10 shrink-0">
+          <img 
+            src="/iconarcabot.jpg" 
+            alt="Bot Avatar" 
+            className="w-10 h-10 rounded-full object-cover border border-gray-200" 
+          />
+          {isResponding && (
+            <div className={s.typeingIcon}>
+              <LoadingAnim type="avatar" />
+            </div>
+          )}
         </div>
         <div className={`${s.answerWrap} max-w-[calc(100%-3rem)]`}>
           <div className={`${s.answer} relative text-sm text-gray-900`}>
