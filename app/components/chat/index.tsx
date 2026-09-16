@@ -37,6 +37,7 @@ export interface IChatProps {
   controlClearQuery?: number
   visionConfig?: VisionSettings
   fileConfig?: FileUpload
+  onStop?: () => void
 }
 
 const Chat: FC<IChatProps> = ({
@@ -51,6 +52,7 @@ const Chat: FC<IChatProps> = ({
   controlClearQuery,
   visionConfig,
   fileConfig,
+  onStop,
 }) => {
   const { t } = useTranslation()
   const { notify } = Toast
