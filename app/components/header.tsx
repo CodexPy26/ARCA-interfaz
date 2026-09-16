@@ -4,7 +4,6 @@ import {
   Bars3Icon,
   PencilSquareIcon,
 } from '@heroicons/react/24/solid'
-import AppIcon from '@/app/components/base/app-icon'
 export interface IHeaderProps {
   title: string
   isMobile?: boolean
@@ -30,7 +29,11 @@ const Header: FC<IHeaderProps> = ({
         )
         : <div></div>}
       <div className='flex items-center space-x-2'>
-        <AppIcon size="small" />
+        <img
+          src="/logoarcahead.jpg"
+          alt="ARCA Logo"
+          className="w-6 h-6 object-contain rounded-md"
+        />
         <div className=" text-sm text-gray-800 font-bold">{title}</div>
       </div>
       {isMobile
