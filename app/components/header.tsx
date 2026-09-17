@@ -5,6 +5,8 @@ import {
   PencilSquareIcon,
   PencilIcon,
 } from '@heroicons/react/24/solid'
+import AuthButton from '@/components/AuthButton'
+
 export interface IHeaderProps {
   title: string
   isMobile?: boolean
