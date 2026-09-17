@@ -685,9 +685,76 @@ const Main: FC<IMainProps> = () => {
         {/* main */}
         <div className='flex-grow flex flex-col h-[calc(100vh_-_3rem)] overflow-y-auto'>
           <div className="px-6 pt-4 pb-2 border-b bg-white sticky top-0 z-10">
-            <h2 className="text-lg font-semibold text-gray-800">
-              {conversationName}
-            </h2>
+            {!isEditingTitle ? (
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  {conversationName}
+                </h2>
+                <button
+                  onClick={() => {
+                    setTempTitle(conversationName)
+                    setIsEditingTitle(true)
+                  }}
+                >
+                  ✏️
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                  <input
+                    value={tempTitle}
+                    onChange={(e) => setTempTitle(e.target.value)}
+                    onKeyDown={async (e) => {
+                      if (e.key === 'Enter') {
+                        setIsEditingTitle(false)
+                  
+                        if (!tempTitle.trim()) return
+                  
+                        if (currConversationInfo) {
+                          setExistConversationInfo({
+                            ...currConversationInfo,
+                            name: tempTitle,
+                          })
+                        }
+                  
+                        setConversationList(produce(conversationList, (draft) => {
+                          const current = draft.find(item => item.id === currConversationId)
+                          if (current) current.name = tempTitle
+                        }))
+                  
+                        if (currConversationId && currConversationId !== '-1') {
+                          await renameConversation(currConversationId, tempTitle)
+                        }
+                  
+                        setTempTitle('') // 👈 también acá
+                      }
+                    }}
+                    className="border px-2 py-1 rounded w-full"
+                  />
+                <button
+                  onClick={async () => {
+                    setIsEditingTitle(false)
+                    if (!tempTitle.trim()) return
+                    if (currConversationInfo) {
+                      setExistConversationInfo({
+                        ...currConversationInfo,
+                        name: tempTitle,
+                    })
+                  }
+                    setConversationList(produce(conversationList, (draft) => {
+                      const current = draft.find(item => item.id === currConversationId)
+                      if (current) current.name = tempTitle
+                    }))          
+                    if (currConversationId && currConversationId !== '-1') {
+                      await renameConversation(currConversationId, tempTitle)
+                    }
+                    setTempTitle('')
+                  }}
+                >
+                  Guardar
+                </button>
+              </div>
+            )}
           </div>
           <ConfigSence
             conversationName={conversationName}
