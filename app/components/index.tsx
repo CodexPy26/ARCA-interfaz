@@ -179,8 +179,11 @@ const Main: FC<IMainProps> = () => {
       })
     }
 
-    if (isNewConversation && isChatStarted) { setChatList(generateNewChatListWithOpenStatement()) }
+    if (isNewConversation) {
+      setChatList(isChatStarted ? generateNewChatListWithOpenStatement() :[])
+    }
   }
+  
   useEffect(handleConversationSwitch, [currConversationId, inited])
 
   const handleConversationIdChange = (id: string) => {
