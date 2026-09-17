@@ -90,5 +90,5 @@ const [newTitle, setNewTitle] = useState(title)
     </div>
   )
 }
-
+ <AuthButton /> 
 export default React.memo(Header)
