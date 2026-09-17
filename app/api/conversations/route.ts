@@ -17,3 +17,24 @@ export async function GET(request: NextRequest) {
     })
   }
 }
+export async function PATCH(request: NextRequest) {
+  const { sessionId, user } = getInfo(request)
+
+  try {
+    const body = await request.json()
+    const { id, name } = body
+
+    // ⚠️ esto depende de cómo funcione tu client
+    const { data }: any = await client.updateConversation(user, id, {
+      name,
+    })
+
+    return NextResponse.json(data, {
+      headers: setSession(sessionId),
+    })
+  } catch (error: any) {
+    return NextResponse.json({
+      error: error.message,
+    })
+  }
+}
