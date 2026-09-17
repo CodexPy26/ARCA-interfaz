@@ -53,7 +53,7 @@ const Main: FC<IMainProps> = () => {
   })
   const [fileConfig, setFileConfig] = useState<FileUpload | undefined>()
   const handleSaveTitle = async () => {
-    setIsEditingTitle(false)
+    console.log('ID:', currConversationId)
     if (!tempTitle.trim()) {
       setIsEditingTitle(false)
         return
