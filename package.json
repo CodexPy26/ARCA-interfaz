@@ -65,6 +65,8 @@
     "use-context-selector": "^2.0.0",
     "uuid": "^10.0.0",
     "zustand": "^4.5.2"
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.48.0",
   },
   "devDependencies": {
     "@antfu/eslint-config": "~5.2.2",
