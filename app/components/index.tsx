@@ -58,6 +58,7 @@ const Main: FC<IMainProps> = () => {
       setIsEditingTitle(false)
         return
       }
+    setIsEditingTitle(false)
     if (currConversationInfo) {
       setExistConversationInfo({
         ...currConversationInfo,
@@ -69,7 +70,11 @@ const Main: FC<IMainProps> = () => {
     if (current) current.name = tempTitle
   }))
   if (currConversationId && currConversationId !== '-1') {
-    await renameConversation(currConversationId, tempTitle)
+    try {
+      await renameConversation(currConversationId, tempTitle)
+    } catch (err) {
+      console.error('Error guardando', err)
+    }
   }
   setTempTitle('')
 }
