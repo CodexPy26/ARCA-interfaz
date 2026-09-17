@@ -9,7 +9,7 @@ import Toast from '@/app/components/base/toast'
 import Sidebar from '@/app/components/sidebar'
 import ConfigSence from '@/app/components/config-scence'
 import Header from '@/app/components/header'
-import { fetchAppParams, fetchChatList, fetchConversations, generationConversationName, sendChatMessage, updateFeedback } from '@/service'
+import { fetchAppParams, fetchChatList, fetchConversations, generationConversationName, renameConversation, sendChatMessage, updateFeedback } from '@/service'
 import type { ChatItem, ConversationItem, Feedbacktype, PromptConfig, VisionFile, VisionSettings } from '@/types/app'
 import type { FileUpload } from '@/app/components/base/file-uploader-in-attachment/types'
 import { Resolution, TransferMethod, WorkflowRunningStatus } from '@/types/app'
@@ -668,20 +668,30 @@ const Main: FC<IMainProps> = () => {
         isMobile={isMobile}
         onShowSideBar={showSidebar}
         onCreateNewChat={() => handleConversationIdChange('-1')}
-        onUpdateTitle={(newTitle) => {
+        onUpdateTitle={async (newTitle) => {
           //actualiza el nombre en la lista de conversaciones
           setExistConversationInfo({
             ...currConversationInfo,
             name: newTitle,
+            introduction: conversationIntroduction,
+            suggested_questions: suggestedQuestions,
           })
-
+          const targetId = currConversationId || '-1'
             //si la conversación existe en la lista lateral, se actualiza su nombre ahi tambien
           setConversationList(produce(conversationList, (draft) => {
-            const current = draft.find(item => item.id === currConversationId)
+            const current = draft.find(item => item.id === targetId)
               if (current) {
                 current.name = newTitle
               }
           }))
+          //persiste el cambio en vps de dify via api
+          if (currConversationId && currConversationId !== '-1') {
+            try{
+              await renameConversation(currConversationId, newTitle)
+            } catch (error) {
+              console.error('Error al renombrar la conversación en Dify:', error)
+            }
+          }
         }}
       />
       <div className="flex rounded-t-2xl bg-white overflow-hidden">
