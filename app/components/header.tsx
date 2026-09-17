@@ -5,7 +5,7 @@ import {
   PencilSquareIcon,
   PencilIcon,
 } from '@heroicons/react/24/solid'
-import AuthButton from '@/components/AuthButton'
+import AuthButton from '@/app/components/AuthButton'
 
 export interface IHeaderProps {
   title: string
