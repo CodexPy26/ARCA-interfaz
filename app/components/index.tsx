@@ -52,7 +52,27 @@ const Main: FC<IMainProps> = () => {
     transfer_methods: [TransferMethod.local_file],
   })
   const [fileConfig, setFileConfig] = useState<FileUpload | undefined>()
-
+  const handleSaveTitle = async () => {
+    setIsEditingTitle(false)
+    if (!tempTitle.trim()) {
+      setIsEditingTitle(false)
+        return
+      }
+    if (currConversationInfo) {
+      setExistConversationInfo({
+        ...currConversationInfo,
+        name: tempTitle,
+      })
+    }
+  setConversationList(produce(conversationList, (draft) => {
+    const current = draft.find(item => item.id === currConversationId)
+    if (current) current.name = tempTitle
+  }))
+  if (currConversationId && currConversationId !== '-1') {
+    await renameConversation(currConversationId, tempTitle)
+  }
+  setTempTitle('')
+}
   useEffect(() => {
     if (APP_INFO?.title) { document.title = `${APP_INFO.title} - Powered by Dify` }
   }, [APP_INFO?.title])
@@ -702,55 +722,16 @@ const Main: FC<IMainProps> = () => {
             ) : (
               <div className="flex items-center gap-2">
                   <input
+                    autoFocus
                     value={tempTitle}
                     onChange={(e) => setTempTitle(e.target.value)}
                     onKeyDown={async (e) => {
-                      if (e.key === 'Enter') {
-                        setIsEditingTitle(false)
-                  
-                        if (!tempTitle.trim()) return
-                  
-                        if (currConversationInfo) {
-                          setExistConversationInfo({
-                            ...currConversationInfo,
-                            name: tempTitle,
-                          })
-                        }
-                  
-                        setConversationList(produce(conversationList, (draft) => {
-                          const current = draft.find(item => item.id === currConversationId)
-                          if (current) current.name = tempTitle
-                        }))
-                  
-                        if (currConversationId && currConversationId !== '-1') {
-                          await renameConversation(currConversationId, tempTitle)
-                        }
-                  
-                        setTempTitle('') // 👈 también acá
-                      }
+                      if (e.key === 'Enter') handleSaveTitle()
+                      if (e.key == 'Escape') setIsEditingTitle(false)
                     }}
                     className="border px-2 py-1 rounded w-full"
                   />
-                <button
-                  onClick={async () => {
-                    setIsEditingTitle(false)
-                    if (!tempTitle.trim()) return
-                    if (currConversationInfo) {
-                      setExistConversationInfo({
-                        ...currConversationInfo,
-                        name: tempTitle,
-                    })
-                  }
-                    setConversationList(produce(conversationList, (draft) => {
-                      const current = draft.find(item => item.id === currConversationId)
-                      if (current) current.name = tempTitle
-                    }))          
-                    if (currConversationId && currConversationId !== '-1') {
-                      await renameConversation(currConversationId, tempTitle)
-                    }
-                    setTempTitle('')
-                  }}
-                >
+                <button onClick={handleSaveTitle}>
                   Guardar
                 </button>
               </div>
