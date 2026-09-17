@@ -18,6 +18,11 @@ export default function AuthButton() {
       setUser(data.user)
       setLoading(false)
     })
+    //escuchar cambios de sesion
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => sub.subscription.unsubscribe()
   }, [])
 
   // Manejar inicio de sesión/registro
@@ -54,7 +59,9 @@ export default function AuthButton() {
   if (user) {
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm text-gray-600">{user.email}</span>
+        <span className="text-sm text-gray-600">
+          {user.email?.split('@')[0]}
+        </span>
         <button
           onClick={async () => {
             await supabase.auth.signOut()
