@@ -80,15 +80,19 @@ const [newTitle, setNewTitle] = useState(title)
         <PencilIcon className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     )}
-      </div>
-      {isMobile
-        ? (
-          <div className='flex items-center justify-center h-8 w-8 cursor-pointer' onClick={() => onCreateNewChat?.()} >
+      </div>      
+      <div className="flex items-center space-x-3">
+        {isMobile && (
+          <div
+            className="flex items-center justify-center h-8 w-8 cursor-pointer"
+            onClick={() => onCreateNewChat?.()}
+          >
             <PencilSquareIcon className="h-4 w-4 text-gray-500" />
-          </div>)
-        : <div></div>}
+          </div>
+        )}
+        <AuthButton />
+      </div>
     </div>
   )
 }
- <AuthButton /> 
 export default React.memo(Header)
