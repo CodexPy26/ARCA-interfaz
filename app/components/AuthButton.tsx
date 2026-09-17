@@ -44,7 +44,13 @@ export default function AuthButton() {
           queries_limit: 20,
         })
       }
-      setMsg('¡Registro exitoso! Revisa tu correo para confirmar.')
+      if (data.session) {
+        setMsg('Registro exitoso')
+        setOpen(false)
+      } else {
+        setMsg('Registro exitoso. Revisa tu correo para confirmar')
+      }
+  
     } else {
       // Inicio de sesión
       const { error } = await supabase.auth.signInWithPassword({ email, password })
