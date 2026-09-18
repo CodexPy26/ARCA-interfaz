@@ -14,14 +14,30 @@ let cachedIsAuthenticated = false
 async function getUserId(): Promise<string> {
   if (typeof window === 'undefined') return 'anonymous'
 
+  // Si ya tenemos el userId cacheado, devolverlo rápido
+  if (cachedIsAuthenticated && cachedUserId) return cachedUserId
+
   try {
-    // Siempre consultar Supabase (no cachear el resultado de auth)
     const supabase = createClient()
+
+    // 1. Primero intentar leer la sesión
     const { data: { session } } = await supabase.auth.getSession()
+
     if (session?.user?.id) {
       cachedUserId = session.user.id
       cachedIsAuthenticated = true
       return cachedUserId
+    }
+
+    // 2. Si no hay sesión, esperar un poco y reintentar (máx 2 seg)
+    for (let i = 0; i < 20; i++) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      const { data: { session: retrySession } } = await supabase.auth.getSession()
+      if (retrySession?.user?.id) {
+        cachedUserId = retrySession.user.id
+        cachedIsAuthenticated = true
+        return cachedUserId
+      }
     }
   } catch (e) {
     // Si falla, seguimos con el guestId
