@@ -502,13 +502,26 @@ const Main: FC<IMainProps> = () => {
         if (hasError) { return }
 
         if (getConversationIdChangeBecauseOfNew()) {
-          const { data: allConversations }: any = await fetchConversations()
-          const newItem: any = await generationConversationName(allConversations[0].id)
+          const firstUserMessage = getChatList().find(item => !item.isAnswer)?.content || 'Nueva Conversación'
+          const tempName = firstUserMessage.slice(0, 30)
+          setConversationList(produce(conversationList, (draft: any) => {
+            const idx = draft.findIndex((c: any) => c.id === '-1')
+            if (idx !== -1) draft[idx].name = tempName
+          }))
+          fetchConversations().then((res: any) => {
+            const { data: allConversations } = res
+            if (!allConversations?.[0]?.id) return
+            generationConversationName(allConversations[0].id).then((newItem: any) => {
 
-          const newAllConversations = produce(allConversations, (draft: any) => {
-            draft[0].name = newItem.name
+              setConversationList(produce(allConversations, (draft: any) => {
+                if (draft[0]) draft[0].name = newItem.name
+              }) as any)
+            }).catch(() => {
+              //si falla dejamos el nombre provisional
+            })
+          }).catch(() => { 
+            //si falla fetchConversations, dejamos el nombre provisional
           })
-          setConversationList(newAllConversations as any)
         }
         setConversationIdChangeBecauseOfNew(false)
         resetNewConversationInputs()
