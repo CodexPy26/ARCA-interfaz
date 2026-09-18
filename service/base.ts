@@ -6,36 +6,40 @@ import { createClient } from '@/app/lib/supabase/client'
 
 
 const TIME_OUT = 100000
-//obtener un ID de usuario (autenticado o invitado)
+
+// ⭐ Obtener un ID de usuario (autenticado o invitado)
 let cachedUserId: string | null = null
+let cachedIsAuthenticated = false
 
 async function getUserId(): Promise<string> {
-  //si ya lo tenemos en la cache, devolverlo
-  if (cachedUserId) return cachedUserId
-  //si estamos en el navegador
-  if (typeof window !== 'undefined') {
-    try {
-      //intentar leer la sesion de supabase
-      const supabase = createClient()
-      const { data } = await supabase.auth.getUser()
-      if (data.user?.id) {
-        cachedUserId = data.user.id
-        return cachedUserId
-      }
-    } catch (e) {
-      //si falla, seguimos con el guestId
+  if (typeof window === 'undefined') return 'anonymous'
+
+  try {
+    // Siempre consultar Supabase (no cachear el resultado de auth)
+    const supabase = createClient()
+    const { data } = await supabase.auth.getUser()
+
+    if (data.user?.id) {
+      cachedUserId = data.user.id
+      cachedIsAuthenticated = true
+      return cachedUserId
     }
-    //2. si no hay sesion, seguimos con el guestId
-    let guestId = localStorage.getItem('arca_guest_id')
-    if (!guestId) {
-      guestId = crypto.randomUUID()
-      localStorage.setItem('arca_guest_id', guestId)
-    }
-    cachedUserId = guestId
-    return cachedUserId
+  } catch (e) {
+    // Si falla, seguimos con el guestId
   }
-  //en el servidor no deber[ia llegar aca, pero por cualquier cosa
-  return 'anonymous'
+
+  // Si ya tenemos un guestId cacheado, devolverlo
+  if (cachedUserId && !cachedIsAuthenticated) return cachedUserId
+
+  // Si no, leer o crear el guestId
+  let guestId = localStorage.getItem('arca_guest_id')
+  if (!guestId) {
+    guestId = crypto.randomUUID()
+    localStorage.setItem('arca_guest_id', guestId)
+  }
+  cachedUserId = guestId
+  cachedIsAuthenticated = false
+  return cachedUserId
 }
 
 const ContentType = {
