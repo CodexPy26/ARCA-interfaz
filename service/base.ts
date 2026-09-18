@@ -17,10 +17,9 @@ async function getUserId(): Promise<string> {
   try {
     // Siempre consultar Supabase (no cachear el resultado de auth)
     const supabase = createClient()
-    const { data } = await supabase.auth.getUser()
-
-    if (data.user?.id) {
-      cachedUserId = data.user.id
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user?.id) {
+      cachedUserId = session.user.id
       cachedIsAuthenticated = true
       return cachedUserId
     }
