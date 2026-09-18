@@ -2,8 +2,41 @@ import { API_PREFIX } from '@/config'
 import Toast from '@/app/components/base/toast'
 import type { AnnotationReply, MessageEnd, MessageReplace, ThoughtItem } from '@/app/components/chat/type'
 import type { VisionFile } from '@/types/app'
+import { createClient } from '@/app/lib/supabase/client'
+
 
 const TIME_OUT = 100000
+//obtener un ID de usuario (autenticado o invitado)
+let cachedUserId: string | null = null
+
+async function getUserId(): Promise<string> {
+  //si ya lo tenemos en la cache, devolverlo
+  if (cachedUserId) return cachedUserId
+  //si estamos en el navegador
+  if (typeof window !== 'undefined') {
+    try {
+      //intentar leer la sesion de supabase
+      const supabase = createClient()
+      const { data } = await supabase.auth.getUser()
+      if (data.user?.id) {
+        cachedUserId = data.user.id
+        return cachedUserId
+      }
+    } catch (e) {
+      //si falla, seguimos con el guestId
+    }
+    //2. si no hay sesion, seguimos con el guestId
+    let guestId = localStorage.getItem('arca_guest_id')
+    if (!guestId) {
+      guestId = crypto.randomUUID()
+      localStorage.setItem('arca_guest_id', guestId)
+    }
+    cachedUserId = guestId
+    return cachedUserId
+  }
+  //en el servidor no deber[ia llegar aca, pero por cualquier cosa
+  return 'anonymous'
+}
 
 const ContentType = {
   json: 'application/json',
@@ -258,7 +291,7 @@ const handleStream = (
 
   read()
 }
-const baseFetch = (url: string, fetchOptions: any, { needAllResponseContent }: IOtherOptions) => {
+const baseFetch = async (url: string, fetchOptions: any, { needAllResponseContent }: IOtherOptions) => {
   const options = Object.assign({}, baseOptions, fetchOptions)
 
   const urlPrefix = API_PREFIX
@@ -266,11 +299,21 @@ const baseFetch = (url: string, fetchOptions: any, { needAllResponseContent }: I
   let urlWithPrefix = `${urlPrefix}${url.startsWith('/') ? url : `/${url}`}`
 
   const { method, params, body } = options
+
+  const userId = await getUserId()
+
   // handle query
-  if (method === 'GET' && params) {
+  if (method === 'GET') {
+    // Agregar user como parámetro de query
+    if (!options.params) {
+      options.params = { user: userId }
+    } else if (!options.params.user) {
+      options.params.user = userId
+    }
+
     const paramsArray: string[] = []
-    Object.keys(params).forEach(key =>
-      paramsArray.push(`${key}=${encodeURIComponent(params[key])}`),
+    Object.keys(options.params).forEach(key =>
+      paramsArray.push(`${key}=${encodeURIComponent(options.params[key])}`),
     )
     if (urlWithPrefix.search(/\?/) === -1) { urlWithPrefix += `?${paramsArray.join('&')}` }
 
@@ -279,7 +322,11 @@ const baseFetch = (url: string, fetchOptions: any, { needAllResponseContent }: I
     delete options.params
   }
 
-  if (body) { options.body = JSON.stringify(body) }
+  if (body) {
+    options.body = JSON.stringify({ ...body, user: userId })
+  } else if (method === 'POST' || method === 'PUT') {
+    options.body = JSON.stringify({ user: userId })
+  }
 
   // Handle timeout
   return Promise.race([
@@ -365,7 +412,7 @@ export const upload = (fetchOptions: any): Promise<any> => {
   })
 }
 
-export const ssePost = (
+export const ssePost = async (
   url: string,
   fetchOptions: any,
   {
@@ -389,6 +436,14 @@ export const ssePost = (
   const urlPrefix = API_PREFIX
   const urlWithPrefix = `${urlPrefix}${url.startsWith('/') ? url : `/${url}`}`
 
+  // inyectar el user ID en el body
+  const userId = await getUserId()
+  if (options.body) {
+    options.body.user = userId
+  } else {
+    options.body = { user: userId }
+  }
+  
   const { body } = options
   if (body) { options.body = JSON.stringify(body) }
 
