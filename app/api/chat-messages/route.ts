@@ -9,8 +9,10 @@ export async function POST(request: NextRequest) {
     files,
     conversation_id: conversationId,
     response_mode: responseMode,
+    user: bodyUser, //NUEVO:extraer user del body
   } = body
-  const { user } = getInfo(request)
+  const { user: fallbackUser } = getInfo(request)
+  const user = bodyUser || fallbackUser // nuevo: priorizar body
   const res = await client.createChatMessage(inputs, query, user, responseMode, conversationId, files)
   return new Response(res.data as any, {
     headers: {
