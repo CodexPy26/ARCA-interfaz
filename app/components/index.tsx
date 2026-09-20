@@ -53,12 +53,14 @@ const Main: FC<IMainProps> = () => {
   })
   const [fileConfig, setFileConfig] = useState<FileUpload | undefined>()
   const handleSaveTitle = async () => {
-    console.log('ID:', currConversationId)
+    const currentId = getCurrConversationId() //valor real y no el viejo
+  
     if (!tempTitle.trim()) {
       setIsEditingTitle(false)
         return
       }
     setIsEditingTitle(false)
+    
     if (currConversationInfo) {
       setExistConversationInfo({
         ...currConversationInfo,
@@ -66,16 +68,22 @@ const Main: FC<IMainProps> = () => {
       })
     }
   setConversationList(produce(conversationList, (draft) => {
-    const current = draft.find(item => item.id === currConversationId)
+    const current = draft.find(item => item.id === currentId)
     if (current) current.name = tempTitle
   }))
-  if (currConversationId && currConversationId !== '-1') {
+    
+  if (currentId && currentId !== '-1') {
     try {
-      await renameConversation(currConversationId, tempTitle)
+      await renameConversation(currentId, tempTitle)
     } catch (err) {
       console.error('Error guardando', err)
+      Toast.notify({
+        type: 'error',
+        message: 'No se pudo guardar el nombre en el servidor (se guardó localmente).',
+      })
     }
   }
+    
   setTempTitle('')
 }
   useEffect(() => {
