@@ -732,6 +732,7 @@ const Main: FC<IMainProps> = () => {
                   {conversationName}
                 </h2>
                 <button
+                  disabled={currConversationId === '-1' || isResponding}
                   onClick={() => {
                     setTempTitle(conversationName)
                     setIsEditingTitle(true)
