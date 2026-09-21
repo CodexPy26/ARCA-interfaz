@@ -160,11 +160,8 @@ const Main: FC<IMainProps> = () => {
     // parse variables in introduction
     setChatList(generateNewChatListWithOpenStatement('', inputs))
   }
-  const hasSetInputs = (() => {
-    if (!isNewConversation) { return true }
-
-    return true
-  })()
+  const hasSetInputs = !isNewConversation
+    || !promptConfig?.prompt_variables?.some(v => v.required && !currInputs?.[v.key])
 
   const conversationName = currConversationInfo?.name || t('app.chat.newChatDefaultName') as string
   const conversationIntroduction = currConversationInfo?.introduction || ''
