@@ -54,27 +54,32 @@ const Main: FC<IMainProps> = () => {
   const [fileConfig, setFileConfig] = useState<FileUpload | undefined>()
   const handleSaveTitle = async () => {
     const currentId = getCurrConversationId() //valor real y no el viejo
-  
-    if (!tempTitle.trim()) {
+    const newTitle = tempTitle.trim()
+
+    if (!newTitle) { 
       setIsEditingTitle(false)
-        return
-      }
+      setTempTitle('')
+      return
+    }
+
     setIsEditingTitle(false)
-    
-    if (currConversationInfo) {
+    setTempTitle('')
+
+    setConversationList(prev => produce(prev, (draft) => {
+      const current= draft.find(item => item.id === currentId)
+      if (current) current.name = newTitle
+    }))
+
+    if (getCurrConversationId() === currentId && currConversationInfo) {
       setExistConversationInfo({
         ...currConversationInfo,
-        name: tempTitle,
+        name: newTitle
       })
     }
-  setConversationList(produce(conversationList, (draft) => {
-    const current = draft.find(item => item.id === currentId)
-    if (current) current.name = tempTitle
-  }))
     
   if (currentId && currentId !== '-1') {
     try {
-      await renameConversation(currentId, tempTitle)
+      await renameConversation(currentId, newTitle)
     } catch (err) {
       console.error('Error guardando', err)
       Toast.notify({
@@ -83,6 +88,7 @@ const Main: FC<IMainProps> = () => {
       })
     }
   }
+}
     
   setTempTitle('')
 }
