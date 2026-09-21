@@ -85,12 +85,15 @@ const Main: FC<IMainProps> = () => {
 
     if (!currentId) return
 
-    const previousName = conversationList.find(item => item.id == currentId)?.name
-
-    setConversationList(prev => produce(prev, (draft) => {
-      const current = draft.find(item => item.id === currentId)
-      if (current) current.name = newTitle
-    }))
+    let previousName: string | undefined
+    setConversationList((prev) => {
+      previousName = prev.find(item => item.id === currentId)?.name
+      return produce(prev, (draft) => {
+  
+        const current = draft.find(item => item.id === currentId)
+        if (current) current.name = newTitle
+      })
+    })  
 
     if (currentId === getCurrConversationId()) {
       setExistConversationInfo (prev => ({
@@ -106,7 +109,7 @@ const Main: FC<IMainProps> = () => {
         console.error('Error guardando', err)
         setConversationList(prev => produce(prev, (draft) => {
           const current = draft.find(item => item.id === currentId)
-          if (current) current.name = previousName || current.name
+          if (current) current.name = previousName ?? current.name
         }))
         Toast.notify({
           type: 'error',
@@ -114,7 +117,7 @@ const Main: FC<IMainProps> = () => {
         })
       }
     }
-    }, [tempTitle, getCurrConversationId, setConversationList, conversationList, setExistConversationInfo])
+    }, [tempTitle, getCurrConversationId, setConversationList, setExistConversationInfo])
   
   useEffect(() => {
     if (APP_INFO?.title) { document.title = `${APP_INFO.title} - Powered by Dify` }
