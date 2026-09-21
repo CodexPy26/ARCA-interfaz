@@ -239,6 +239,7 @@ const Main: FC<IMainProps> = () => {
     if (id === '-1') {
       createNewChat()
       setConversationIdChangeBecauseOfNew(true)
+      setChatNotStarted() 
     }
     else {
       setConversationIdChangeBecauseOfNew(false)
