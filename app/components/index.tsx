@@ -152,18 +152,16 @@ const Main: FC<IMainProps> = () => {
     currConversationId,
   })
 
-  useEffect(() => {
-    stateRef.current = {
-      currInputs,
-      isResponding,
-      conversationIdChangeBecauseOfNew,
-      newConversationInputs,
-      isNewConversation,
-      conversationIntroduction: currConversationInfo?.introduction || '',
-      suggestedQuestions: currConversationInfo?.suggested_questions || [],
-      currConversationId,
-    }
-  })
+stateRef.current = {
+  currInputs,
+  isResponding,
+  conversationIdChangeBecauseOfNew,
+  newConversationInputs,
+  isNewConversation,
+  conversationIntroduction: currConversationInfo?.introduction || '',
+  suggestedQuestions: currConversationInfo?.suggested_questions || [],
+  currConversationId,
+}
 
   const handleStartChat = (inputs: Record<string, any>) => {
     createNewChat()
