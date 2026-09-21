@@ -63,7 +63,7 @@ const Main: FC<IMainProps> = () => {
     if (!newTitle) return
 
     setConversationList(prev => produce(prev, (draft) => {
-      const current= draft.find(item => item.id === currentId)
+      const current = draft.find(item => item.id === currentId)
       if (current) current.name = newTitle
     }))
 
@@ -74,18 +74,18 @@ const Main: FC<IMainProps> = () => {
       })
     }
     
-  if (currentId && currentId !== '-1') {
-    try {
-      await renameConversation(currentId, newTitle)
-    } catch (err) {
-      console.error('Error guardando', err)
-      Toast.notify({
-        type: 'error',
-        message: 'No se pudo guardar el nombre en el servidor (se guardó localmente).',
-      })
+    if (currentId && currentId !== '-1') {
+      try {
+        await renameConversation(currentId, newTitle)
+      } catch (err) {
+        console.error('Error guardando', err)
+        Toast.notify({
+          type: 'error',
+          message: 'No se pudo guardar el nombre en el servidor (se guardó localmente).',
+        })
+      }
     }
-  }
-  }, [tempTitle, getCurrConversationId, setConversationList, currConversationInfo, setExistConversationInfo])
+    }, [tempTitle, getCurrConversationId, setConversationList, currConversationInfo, setExistConversationInfo])
   
   useEffect(() => {
     if (APP_INFO?.title) { document.title = `${APP_INFO.title} - Powered by Dify` }
