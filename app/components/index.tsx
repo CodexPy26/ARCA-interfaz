@@ -1,6 +1,6 @@
 'use client'
 import type { FC } from 'react'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import produce, { setAutoFreeze } from 'immer'
 import { useBoolean, useGetState } from 'ahooks'
@@ -120,6 +120,38 @@ const Main: FC<IMainProps> = () => {
 
   const [conversationIdChangeBecauseOfNew, setConversationIdChangeBecauseOfNew, getConversationIdChangeBecauseOfNew] = useGetState(false)
   const [isChatStarted, { setTrue: setChatStarted, setFalse: setChatNotStarted }] = useBoolean(false)
+
+  /*
+  * chat info. chat is under conversation.
+  */
+  const [isResponding, { setTrue: setRespondingTrue, setFalse: setRespondingFalse }] = useBoolean(false)
+  const [chatList, setChatList, getChatList] = useGetState<ChatItem[]>([])
+
+  // 🆕 Ref que siempre tiene los valores frescos para handleConversationSwitch
+  const stateRef = useRef({
+    currInputs,
+    isResponding,
+    conversationIdChangeBecauseOfNew,
+    newConversationInputs,
+    isNewConversation,
+    conversationIntroduction: currConversationInfo?.introduction || '',
+    suggestedQuestions: currConversationInfo?.suggested_questions || [],
+    currConversationId,
+  })
+
+  useEffect(() => {
+    stateRef.current = {
+      currInputs,
+      isResponding,
+      conversationIdChangeBecauseOfNew,
+      newConversationInputs,
+      isNewConversation,
+      conversationIntroduction: currConversationInfo?.introduction || '',
+      suggestedQuestions: currConversationInfo?.suggested_questions || [],
+      currConversationId,
+    }
+  })
+
   const handleStartChat = (inputs: Record<string, any>) => {
     createNewChat()
     setConversationIdChangeBecauseOfNew(true)
@@ -138,8 +170,20 @@ const Main: FC<IMainProps> = () => {
   const conversationIntroduction = currConversationInfo?.introduction || ''
   const suggestedQuestions = currConversationInfo?.suggested_questions || []
 
-  const handleConversationSwitch = () => {
+  const handleConversationSwitch = useCallback(() => {
     if (!inited) { return }
+
+    // 🔄 Lee SIEMPRE los valores frescos desde el ref
+    const {
+      currInputs,
+      isResponding,
+      conversationIdChangeBecauseOfNew,
+      newConversationInputs,
+      isNewConversation,
+      conversationIntroduction,
+      suggestedQuestions,
+      currConversationId,
+    } = stateRef.current
 
     // update inputs of current conversation
     let notSyncToStateIntroduction = ''
@@ -190,9 +234,9 @@ const Main: FC<IMainProps> = () => {
     if (isNewConversation) {
       setChatList(isChatStarted ? generateNewChatListWithOpenStatement() :[])
     }
-  }
+  }, [inited, conversationList, isChatStarted])
   
-  useEffect(handleConversationSwitch, [currConversationId, inited])
+  useEffect(handleConversationSwitch, [currConversationId, inited, handleConversationSwitch])
 
   const handleConversationIdChange = (id: string) => {
     if (id === '-1') {
@@ -207,10 +251,6 @@ const Main: FC<IMainProps> = () => {
     hideSidebar()
   }
 
-  /*
-  * chat info. chat is under conversation.
-  */
-  const [chatList, setChatList, getChatList] = useGetState<ChatItem[]>([])
   const chatListDomRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     // scroll to bottom with page-level scrolling
@@ -333,7 +373,6 @@ const Main: FC<IMainProps> = () => {
     })()
   }, [])
 
-  const [isResponding, { setTrue: setRespondingTrue, setFalse: setRespondingFalse }] = useBoolean(false)
   const [abortController, setAbortController] = useState<AbortController | null>(null)
   const handleStop = () => {
     if (abortController) {
