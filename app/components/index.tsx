@@ -54,6 +54,26 @@ const Main: FC<IMainProps> = () => {
   
   const [fileConfig, setFileConfig] = useState<FileUpload | undefined>()
   
+  /*
+  * conversation info
+  */
+  const {
+    conversationList,
+    setConversationList,
+    currConversationId,
+    getCurrConversationId,
+    setCurrConversationId,
+    getConversationIdFromStorage,
+    isNewConversation,
+    currConversationInfo,
+    currInputs,
+    newConversationInputs,
+    resetNewConversationInputs,
+    setCurrInputs,
+    setNewConversationInfo,
+    setExistConversationInfo,
+  } = useConversation()
+
   const handleSaveTitle = useCallback(async () => {
     const currentId = getCurrConversationId() //valor real y no el viejo
     const newTitle = tempTitle.trim()
@@ -107,26 +127,6 @@ const Main: FC<IMainProps> = () => {
       setAutoFreeze(true)
     }
   }, [])
-
-  /*
-  * conversation info
-  */
-  const {
-    conversationList,
-    setConversationList,
-    currConversationId,
-    getCurrConversationId,
-    setCurrConversationId,
-    getConversationIdFromStorage,
-    isNewConversation,
-    currConversationInfo,
-    currInputs,
-    newConversationInputs,
-    resetNewConversationInputs,
-    setCurrInputs,
-    setNewConversationInfo,
-    setExistConversationInfo,
-  } = useConversation()
 
   const [conversationIdChangeBecauseOfNew, setConversationIdChangeBecauseOfNew, getConversationIdChangeBecauseOfNew] = useGetState(false)
   const [isChatStarted, { setTrue: setChatStarted, setFalse: setChatNotStarted }] = useBoolean(false)
