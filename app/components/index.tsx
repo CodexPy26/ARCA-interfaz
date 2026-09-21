@@ -243,6 +243,7 @@ const Main: FC<IMainProps> = () => {
     }
     else {
       setConversationIdChangeBecauseOfNew(false)
+      setChatList([])
     }
     // trigger handleConversationSwitch
     setCurrConversationId(id, APP_ID)
