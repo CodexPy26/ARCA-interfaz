@@ -266,12 +266,13 @@ const Main: FC<IMainProps> = () => {
   // user can not edit inputs if user had send message
   const canEditInputs = !chatList.some(item => item.isAnswer === false) && isNewConversation
   const createNewChat = () => {
-    // if new chat is already exist, do not create new chat
-    if (conversationList.some(item => item.id === '-1')) { return }
     //limpieza de lista visual de mensajes.
     setChatList([])
 
-    setConversationList(produce(conversationList, (draft) => {
+    setConversationList(prev => {
+      if (prev.some(item => item.id === '-1')) {return prev}
+
+      return produce(prev, (draft) => {
       draft.unshift({
         id: '-1',
         name: t('app.chat.newChatDefaultName'),
@@ -279,8 +280,9 @@ const Main: FC<IMainProps> = () => {
         introduction: conversationIntroduction,
         suggested_questions: suggestedQuestions,
       })
-    }))
-  }
+    })
+  })
+}
 
   // sometime introduction is not applied to state
   const generateNewChatListWithOpenStatement = (introduction?: string, inputs?: Record<string, any> | null) => {
