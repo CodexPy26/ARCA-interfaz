@@ -670,7 +670,8 @@ const Main: FC<IMainProps> = () => {
         setRespondingFalse()
         // role back placeholder answer
         setChatList(produce(getChatList(), (draft) => {
-          draft.splice(draft.findIndex(item => item.id === placeholderAnswerId), 1)
+          const index = draft.findIndex(item => item.id === placeholderAnswerId)
+          if (index !== -1) draft.splice(index, 1)
         }))
       },
       onWorkflowStarted: ({ workflow_run_id, task_id }) => {
