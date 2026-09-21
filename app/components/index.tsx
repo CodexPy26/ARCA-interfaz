@@ -86,9 +86,7 @@ const Main: FC<IMainProps> = () => {
     }
   }
   }, [tempTitle, getCurrConversationId, setConversationList, currConversationInfo, setExistConversationInfo])
-    
-  setTempTitle('')
-}
+  
   useEffect(() => {
     if (APP_INFO?.title) { document.title = `${APP_INFO.title} - Powered by Dify` }
   }, [APP_INFO?.title])
