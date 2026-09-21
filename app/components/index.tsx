@@ -57,35 +57,44 @@ const Main: FC<IMainProps> = () => {
   const handleSaveTitle = useCallback(async () => {
     const currentId = getCurrConversationId() //valor real y no el viejo
     const newTitle = tempTitle.trim()
+    
     setIsEditingTitle(false)
     setTempTitle('')
     
     if (!newTitle) return
+
+    if (!currentId) return
+
+    const previousName = conversationList.find(item => item.id == currentId)?.name
 
     setConversationList(prev => produce(prev, (draft) => {
       const current = draft.find(item => item.id === currentId)
       if (current) current.name = newTitle
     }))
 
-    if (getCurrConversationId() === currentId && currConversationInfo) {
-      setExistConversationInfo({
-        ...currConversationInfo,
-        name: newTitle
-      })
+    if (currentId === getCurrConversationId()) {
+      setExistConversationInfo (prev => ({
+        ...(prev || {}),
+        name: newTitle,
+      }))
     }
     
-    if (currentId && currentId !== '-1') {
+    if (currentId !== '-1') {
       try {
         await renameConversation(currentId, newTitle)
       } catch (err) {
         console.error('Error guardando', err)
+        setConversationList(prev => produce(prev, (draft) => {
+          const current = draft.find(item => item.id === currentId)
+          if (current) current.name = previousName || current.name
+        }))
         Toast.notify({
           type: 'error',
           message: 'No se pudo guardar el nombre en el servidor (se guardó localmente).',
         })
       }
     }
-    }, [tempTitle, getCurrConversationId, setConversationList, currConversationInfo, setExistConversationInfo])
+    }, [tempTitle, getCurrConversationId, setConversationList, conversationList, setExistConversationInfo])
   
   useEffect(() => {
     if (APP_INFO?.title) { document.title = `${APP_INFO.title} - Powered by Dify` }
@@ -194,7 +203,7 @@ const Main: FC<IMainProps> = () => {
       setExistConversationInfo({
         name: item?.name || '',
         introduction: notSyncToStateIntroduction,
-        suggested_questions: suggestedQuestions,
+        suggested_questions: item?.suggested_questions || [],
       })
     }
     else {
@@ -202,12 +211,14 @@ const Main: FC<IMainProps> = () => {
       setCurrInputs(notSyncToStateInputs)
     }
 
-    // update chat list of current conversation
+    // update chat list of current conversation    
     if (!isNewConversation && !conversationIdChangeBecauseOfNew && !isResponding) {
-      fetchChatList(currConversationId).then((res: any) => {
+      const idAtRequestTime = currConversationId
+      fetchChatList(idAtRequestTime).then((res: any) => {
+        if (idAtRequestTime !== stateRef.current.currConversationId) return
+        
         const { data } = res
         const newChatList: ChatItem[] = generateNewChatListWithOpenStatement(notSyncToStateIntroduction, notSyncToStateInputs)
-
         data.forEach((item: any) => {
           newChatList.push({
             id: `question-${item.id}`,
@@ -561,10 +572,14 @@ const Main: FC<IMainProps> = () => {
             const { data: allConversations } = res
             if (!allConversations?.[0]?.id) return
             generationConversationName(allConversations[0].id).then((newItem: any) => {
-
               setConversationList(produce(allConversations, (draft: any) => {
-                if (draft[0]) draft[0].name = newItem.name
-              }) as any)
+                const idx = draft.findIndex((c: any) => c.id === allConversations [0].id)
+                if (idx !== -1) {
+                  draft[idx].name = newItem.name
+                } else {
+                  draft.unshift(allConversations[0])
+                }
+              }))                    
             }).catch(() => {
               //si falla dejamos el nombre provisional
             })
@@ -575,9 +590,12 @@ const Main: FC<IMainProps> = () => {
         setConversationIdChangeBecauseOfNew(false)
         resetNewConversationInputs()
         setChatNotStarted()
-        setCurrConversationId(tempNewConversationId, APP_ID, true)
+        if (tempNewConversationId) {
+          setCurrConversationId(tempNewConversationId, APP_ID, true)
+        }
         setRespondingFalse()
       },
+      
       onFile(file) {
         const lastThought = responseItem.agent_thoughts?.[responseItem.agent_thoughts?.length - 1]
         if (lastThought) { lastThought.message_files = [...(lastThought as any).message_files, { ...file }] }
@@ -794,12 +812,19 @@ const Main: FC<IMainProps> = () => {
             ) : (
               <div className="flex items-center gap-2">
                   <input
+                    key={`title-input-${currConversationId}`}
                     autoFocus
                     value={tempTitle}
                     onChange={(e) => setTempTitle(e.target.value)}
                     onKeyDown={async (e) => {
-                      if (e.key === 'Enter') handleSaveTitle()
-                      if (e.key == 'Escape') setIsEditingTitle(false)
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleSaveTitle()
+                      }
+                      if (e.key == 'Escape') {
+                        setIsEditingTitle(false)
+                        setTempTitle('')
+                      }
                     }}
                     className="border px-2 py-1 rounded w-full"
                   />
