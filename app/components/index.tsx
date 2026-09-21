@@ -346,7 +346,7 @@ const Main: FC<IMainProps> = () => {
         setVisionConfig({
           ...file_upload?.image,
           enabled: !!(outerFileUploadEnabled && file_upload?.image?.enabled),
-          image_file_size_limit: system_parameters?.system_parameters || 0,
+          image_file_size_limit: system_parameters?.image_file_size_limit || 0,
         })
         setFileConfig({
           enabled: outerFileUploadEnabled,
