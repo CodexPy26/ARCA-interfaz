@@ -51,19 +51,16 @@ const Main: FC<IMainProps> = () => {
     detail: Resolution.low,
     transfer_methods: [TransferMethod.local_file],
   })
+  
   const [fileConfig, setFileConfig] = useState<FileUpload | undefined>()
-  const handleSaveTitle = async () => {
+  
+  const handleSaveTitle = useCallback(async () => {
     const currentId = getCurrConversationId() //valor real y no el viejo
     const newTitle = tempTitle.trim()
-
-    if (!newTitle) { 
-      setIsEditingTitle(false)
-      setTempTitle('')
-      return
-    }
-
     setIsEditingTitle(false)
     setTempTitle('')
+    
+    if (!newTitle) return
 
     setConversationList(prev => produce(prev, (draft) => {
       const current= draft.find(item => item.id === currentId)
@@ -88,7 +85,7 @@ const Main: FC<IMainProps> = () => {
       })
     }
   }
-}
+  }, [tempTitle, getCurrConversationId, setConversationList, currConversationInfo, setExistConversationInfo])
     
   setTempTitle('')
 }
