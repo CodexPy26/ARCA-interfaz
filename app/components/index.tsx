@@ -74,44 +74,40 @@ const Main: FC<IMainProps> = () => {
     setExistConversationInfo,
   } = useConversation()
 
-  const handleSaveTitle = useCallback(async () => {
-    const currentId = getCurrConversationId() //valor real y no el viejo
-    const newTitle = tempTitle.trim()
-    
-    setIsEditingTitle(false)
-    setTempTitle('')
-    
-    if (!newTitle) return
-    if (!currentId) return
-    
-    const previousName = conversationList.find(item => item.id === currentId)?.name
+const handleSaveTitle = useCallback(async () => {
+  const currentId = getCurrConversationId()
+  const newTitle = tempTitle.trim()
 
+  setIsEditingTitle(false)
+  setTempTitle('')
+
+  if (!newTitle) return
+  if (!currentId) return
+
+  if (currentId === '-1') {
     setConversationList(prev => produce(prev, (draft) => {
       const current = draft.find(item => item.id === currentId)
       if (current) current.name = newTitle
-    })) 
-
-    setExistConversationInfo(prev => ({
-      ...(prev || {}),
-      name: newTitle,
     }))
-    
-    if (currentId !== '-1') {
-      try {
-        await renameConversation(currentId, newTitle)
-      } catch (err) {
-        console.error('Error guardando', err)
-        setConversationList(prev => produce(prev, (draft) => {
-          const current = draft.find(item => item.id === currentId)
-          if (current) current.name = previousName ?? current.name
-        }))
-        Toast.notify({
-          type: 'error',
-          message: 'No se pudo guardar el nombre en el servidor (se guardó localmente).',
-        })
-      }
-    }
-    }, [tempTitle, getCurrConversationId, setConversationList, setExistConversationInfo, conversationList])
+    setExistConversationInfo(prev => ({ ...(prev || {}), name: newTitle }))
+    return
+  }
+
+  try {
+    await renameConversation(currentId, newTitle)
+    setConversationList(prev => produce(prev, (draft) => {
+      const current = draft.find(item => item.id === currentId)
+      if (current) current.name = newTitle
+    }))
+    setExistConversationInfo(prev => ({ ...(prev || {}), name: newTitle }))
+  } catch (err) {
+    console.error('Error guardando', err)
+    Toast.notify({
+      type: 'error',
+      message: 'No se pudo guardar el nombre en el servidor.',
+    })
+  }
+}, [tempTitle, getCurrConversationId, setConversationList, setExistConversationInfo])
   
   useEffect(() => {
     if (APP_INFO?.title) { document.title = `${APP_INFO.title} - Powered by Dify` }
