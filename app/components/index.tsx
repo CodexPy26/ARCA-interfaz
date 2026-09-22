@@ -693,12 +693,15 @@ stateRef.current = {
         }
         setChatList(produce(getChatList(), (draft) => {
           const currentIndex = draft.findIndex(item => item.id === responseItem.id)
-          draft[currentIndex] = {
-            ...draft[currentIndex],
-            ...responseItem,
+          if (currentIndex !== -1) {
+            draft[currentIndex] = {
+              ...draft[currentIndex],
+              ...responseItem,
+            }
           }
         }))
       },
+              
       onWorkflowFinished: ({ data }) => {
         responseItem.workflowProcess!.status = data.status as WorkflowRunningStatus
         setChatList(produce(getChatList(), (draft) => {
