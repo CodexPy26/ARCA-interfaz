@@ -57,13 +57,20 @@ export const updateFeedback = async ({ url, body }: { url: string, body: Feedbac
   return post(url, { body })
 }
 
-export const generationConversationName = async (id: string) => {
-  return post(`conversations/${id}/name`, { body: { auto_generate: true } })
+export const generationConversationName = async (id: string, user: string) => {
+  return post(`conversations/${id}/name`, { 
+    body: {
+      auto_generate: true,
+      user,
+    }, 
+  })
 }
-export const renameConversation = async (id: string, name: string) => {
+
+export const renameConversation = async (id: string, name: string, user: string) => {
   return post(`conversations/${id}/name`, {
     body: {
       name,
+      user,
     },
   })
 }
