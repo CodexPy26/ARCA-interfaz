@@ -95,12 +95,10 @@ const Main: FC<IMainProps> = () => {
       })
     })  
 
-    if (currentId === getCurrConversationId()) {
-      setExistConversationInfo (prev => ({
-        ...(prev || {}),
-        name: newTitle,
-      }))
-    }
+    setExistConversationInfo(prev => ({
+      ...(prev || {}),
+      name: newTitle,
+    }))
     
     if (currentId !== '-1') {
       try {
