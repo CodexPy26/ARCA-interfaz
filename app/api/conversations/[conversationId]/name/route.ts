@@ -9,9 +9,11 @@ export async function POST(request: NextRequest, { params }: {
   const {
     auto_generate,
     name,
+    user: bodyUser
   } = body
   const { conversationId } = await params
-  const { user } = getInfo(request)
+  const { user: fallbackUser } = getInfo(request)
+  const user = bodyUser || fallbackUser
 
   // auto generate name
   const { data } = await client.renameConversation(conversationId, name, user, auto_generate)
