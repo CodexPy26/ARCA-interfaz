@@ -451,6 +451,7 @@ stateRef.current = {
   }
 
   const handleSend = async (message: string, files?: VisionFile[]) => {
+    console.log('🚀 handleSend:', { currConversationId, isNewConversation })
     if (isResponding) {
       notify({ type: 'info', message: t('app.errorMessage.waitForResponse') })
       return
