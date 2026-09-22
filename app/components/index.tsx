@@ -231,8 +231,8 @@ stateRef.current = {
       })
     }
 
-    if (isNewConversation) {
-      setChatList(isChatStarted ? generateNewChatListWithOpenStatement() :[])
+    if (isNewConversation && !getConversationIdChangeBecauseOfNew()) {
+      setChatList(isChatStarted ? generateNewChatListWithOpenStatement() : [])
     }
   }, [inited, conversationList, isChatStarted])
   
