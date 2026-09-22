@@ -525,6 +525,7 @@ stateRef.current = {
         setAbortController(abortController)
       },
       onData: (message: string, isFirstMessage: boolean, { conversationId: newConversationId, messageId, taskId }: any) => {
+        console.log('🔍 DEBUG:', { isFirstMessage, newConversationId })
         if (!isAgentMode) {
           responseItem.content = responseItem.content + message
         }
