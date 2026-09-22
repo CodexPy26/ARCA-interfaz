@@ -239,6 +239,9 @@ stateRef.current = {
   useEffect(handleConversationSwitch, [currConversationId, inited, handleConversationSwitch])
 
   const handleConversationIdChange = (id: string) => {
+    setIsEditingTitle(false)   // 👈 AGREGADO
+    setTempTitle('')           // 👈 AGREGADO
+    
     if (id === '-1') {
       createNewChat()
       setConversationIdChangeBecauseOfNew(true)
