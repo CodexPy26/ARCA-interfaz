@@ -555,20 +555,30 @@ stateRef.current = {
         if (getConversationIdChangeBecauseOfNew()) {
           const firstUserMessage = getChatList().find(item => !item.isAnswer)?.content || 'Nueva Conversación'
           const tempName = firstUserMessage.slice(0, 30)
-          setConversationList(produce(conversationList, (draft: any) => {
+          
+          setConversationList(prev => produce(prev, (draft: any) => {
             const idx = draft.findIndex((c: any) => c.id === '-1')
             if (idx !== -1) draft[idx].name = tempName
           }))
+          
           fetchConversations().then((res: any) => {
             const { data: allConversations } = res
-            if (!allConversations?.[0]?.id) return
-            generationConversationName(allConversations[0].id).then((newItem: any) => {
-              setConversationList(produce(allConversations, (draft: any) => {
-                const idx = draft.findIndex((c: any) => c.id === allConversations [0].id)
-                if (idx !== -1) {
-                  draft[idx].name = newItem.name
+            const newConversation = allConversations?.find((c: any) => c.id === tempNewConversationId)
+            if (!newConversation?.id) return            
+            generationConversationName(newConversation.id).then((newItem: any) => {
+              setConversationList(prev => produce(prev, (draft: any) => {
+                const placeholderIdx = draft.findIndex((c: any) => c.id === '-1')
+                if (placeholderIdx !== -1) {
+                  draft.splice(placeholderIdx, 1)
+                }
+                const existingIdx = draft.findIndex((c: any) => c.id === newConversation.id)
+                if (existingIdx !== -1) {
+                  draft[existingIdx].name = newItem.name
                 } else {
-                  draft.unshift(allConversations[0])
+                  draft.unshift({
+                    ...newConversation,
+                    name: newItem.name,
+                  })
                 }
               }))                    
             }).catch(() => {
