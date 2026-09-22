@@ -1,6 +1,9 @@
 import type { NextRequest } from 'next/server'
 import { API_KEY, API_URL } from '@/config'
 import { getInfo } from '@/app/api/utils/common'
+
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
   
 export async function POST(request: NextRequest) {
   const body = await request.json()
