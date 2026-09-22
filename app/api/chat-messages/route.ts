@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server'
-import { client, getInfo } from '@/app/api/utils/common'
-
+import { API_KEY, API_URL } from '@/config'
+import { getInfo } from '@/app/api/utils/common'
+  
 export async function POST(request: NextRequest) {
   const body = await request.json()
   const {
@@ -13,10 +14,32 @@ export async function POST(request: NextRequest) {
   } = body
   const { user: fallbackUser } = getInfo(request)
   const user = bodyUser || fallbackUser // nuevo: priorizar body
-  const res = await client.createChatMessage(inputs, query, user, responseMode, conversationId, files)
-  return new Response(res.data as any, {
+  const payload = {
+  inputs,
+  query,
+  user,
+  response_mode: responseMode,
+  conversation_id: conversationId,
+  files,
+}
+
+  const difyRes = await fetch(`${API_URL}/chat-messages`, {
+    method: 'POST',
     headers: {
-      'Content-type': 'text/event-stream',
+      'Authorization': `Bearer ${API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+  
+  if (!difyRes.ok) {
+    const errorText = await difyRes.text()
+    return new Response(errorText, { status: difyRes.status })
+  }
+  
+  return new Response(difyRes.body, {
+    headers: {
+      'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache, no-transform',
       'Connection': 'keep-alive',
     },
