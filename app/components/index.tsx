@@ -82,18 +82,14 @@ const Main: FC<IMainProps> = () => {
     setTempTitle('')
     
     if (!newTitle) return
-
     if (!currentId) return
+    
+    const previousName = conversationList.find(item => item.id === currentId)?.name
 
-    let previousName: string | undefined
-    setConversationList((prev) => {
-      previousName = prev.find(item => item.id === currentId)?.name
-      return produce(prev, (draft) => {
-  
-        const current = draft.find(item => item.id === currentId)
-        if (current) current.name = newTitle
-      })
-    })  
+    setConversationList(prev => produce(prev, (draft) => {
+      const current = draft.find(item => item.id === currentId)
+      if (current) current.name = newTitle
+    })) 
 
     setExistConversationInfo(prev => ({
       ...(prev || {}),
@@ -115,7 +111,7 @@ const Main: FC<IMainProps> = () => {
         })
       }
     }
-    }, [tempTitle, getCurrConversationId, setConversationList, setExistConversationInfo])
+    }, [tempTitle, getCurrConversationId, setConversationList, setExistConversationInfo, conversationList])
   
   useEffect(() => {
     if (APP_INFO?.title) { document.title = `${APP_INFO.title} - Powered by Dify` }
