@@ -14,7 +14,7 @@ function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(' ')
 }
 
-const MAX_CONVERSATION_LENTH = 20
+const MAX_CONVERSATION_LENTH = 100
 
 export interface ISidebarProps {
   copyRight: string
