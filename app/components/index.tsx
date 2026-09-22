@@ -525,7 +525,7 @@ stateRef.current = {
         setAbortController(abortController)
       },
       onData: (message: string, isFirstMessage: boolean, { conversationId: newConversationId, messageId, taskId }: any) => {
-        console.log('🔍 DEBUG:', { isFirstMessage, newConversationId })
+        console.log('🔍 DEBUG:', { isFirstMessage, newConversationId, tempNewConversationId })
         if (!isAgentMode) {
           responseItem.content = responseItem.content + message
         }
@@ -554,6 +554,7 @@ stateRef.current = {
         })
       },
       async onCompleted(hasError?: boolean) {
+        console.log('🏁 onCompleted:', { hasError, tempNewConversationId, changeBecauseOfNew: getConversationIdChangeBecauseOfNew() })
         if (hasError) { return }
 
         if (getConversationIdChangeBecauseOfNew()) {
@@ -599,6 +600,7 @@ stateRef.current = {
           setCurrConversationId(tempNewConversationId, APP_ID, true)
         }
         setRespondingFalse()
+        console.log('🏁 onCompleted END:', { tempNewConversationId, currConversationIdAfter: getCurrConversationId() })
       },
       
       onFile(file) {
