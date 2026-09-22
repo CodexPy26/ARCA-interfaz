@@ -706,30 +706,42 @@ stateRef.current = {
         responseItem.workflowProcess!.status = data.status as WorkflowRunningStatus
         setChatList(produce(getChatList(), (draft) => {
           const currentIndex = draft.findIndex(item => item.id === responseItem.id)
-          draft[currentIndex] = {
-            ...draft[currentIndex],
-            ...responseItem,
+          if (currentIndex !== -1) {
+            draft[currentIndex] = {
+              ...draft[currentIndex],
+              ...responseItem,
+            }
           }
         }))
       },
+      
       onNodeStarted: ({ data }) => {
-        responseItem.workflowProcess!.tracing!.push(data as any)
+        responseItem.workflowProcess!.tracing.push(data as any)
         setChatList(produce(getChatList(), (draft) => {
           const currentIndex = draft.findIndex(item => item.id === responseItem.id)
-          draft[currentIndex] = {
-            ...draft[currentIndex],
-            ...responseItem,
+          if (currentIndex !== -1) {
+            draft[currentIndex] = {
+              ...draft[currentIndex],
+              ...responseItem,
+            }
           }
         }))
       },
+      
       onNodeFinished: ({ data }) => {
-        const currentIndex = responseItem.workflowProcess!.tracing!.findIndex(item => item.node_id === data.node_id)
-        responseItem.workflowProcess!.tracing[currentIndex] = data as any
+        const nodeIndex = responseItem.workflowProcess!.tracing.findIndex(item => item.node_id === data.node_id)
+        if (nodeIndex !== -1) {
+          responseItem.workflowProcess!.tracing[nodeIndex] = data as any
+        } else {
+          responseItem.workflowProcess!.tracing.push(data as any)
+        }
         setChatList(produce(getChatList(), (draft) => {
           const currentIndex = draft.findIndex(item => item.id === responseItem.id)
-          draft[currentIndex] = {
-            ...draft[currentIndex],
-            ...responseItem,
+          if (currentIndex !== -1) {
+            draft[currentIndex] = {
+              ...draft[currentIndex],
+              ...responseItem,
+            }
           }
         }))
       },
