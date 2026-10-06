@@ -2,6 +2,15 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+
+const acceptLanguage = request.headers.get('accept-language') || '' 
+
+if (!acceptLanguage || acceptLanguage.includes('*')) {
+  const headers = new Headers(request.headers)
+  headers.set('accept-language', 'es-419,es;q=0.9')
+  request = new NextRequest(request, { headers })
+}
+  
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
