@@ -225,6 +225,7 @@ stateRef.current = {
             feedback: item.feedback,
             isAnswer: true,
             message_files: item.message_files?.filter((file: any) => file.belongs_to === 'assistant') || [],
+            retriever_resources: item.retriever_resources || [],
           })
         })
         setChatList(newChatList)
