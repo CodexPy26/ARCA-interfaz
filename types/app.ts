@@ -94,6 +94,13 @@ export type ChatItem = IChatItem & {
   isError?: boolean
   workflow_run_id?: string
   workflowProcess?: WorkflowProcess
+  retriever_resources?: Array<{
+    document_name?: string
+    dataset_name?: string
+    content?: string
+    score?: number
+    segment_id?: string
+  }>
 }
 
 export interface ResponseHolder {}
