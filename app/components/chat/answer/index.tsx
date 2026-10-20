@@ -223,28 +223,20 @@ const Answer: FC<IAnswerProps> = ({
               {item.retriever_resources && item.retriever_resources.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-gray-200">
                   <div className="text-xs font-medium text-gray-500 mb-2">Fuentes:</div>
-                  <div className="space-y-1">
-                    {item.retriever_resources.map((resource, idx) => (
-                      <div key={idx} className="flex items-start gap-2 text-xs text-gray-600">
-                        <span className="text-gray-400">📄</span>
-                        <div className="flex-1">
-                          <span className="font-medium">
-                            {resource.document_name || resource.dataset_name || 'Documento'}
-                          </span>
-                          {resource.score && (
-                            <span className="ml-2 text-gray-400">
-                              ({(resource.score * 100).toFixed(1)}%)
-                            </span>
-                          )}
-                          {resource.content && (
-                            <p className="mt-1 text-gray-500 line-clamp-2">
-                              {resource.content}
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                  <ul className="space-y-1">
+                    {Array.from(
+                      new Set(
+                        item.retriever_resources.map((resource) => {
+                          const rawName = resource.document_name || resource.dataset_name || 'Documento'
+                          return rawName.replace(/\.md$/i, '')
+                        })
+                      )
+                    ).map((cleanName, idx) => (
+                      <li key={idx} className="text-xs text-gray-600">
+                        · {cleanName}
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
               )}
               
