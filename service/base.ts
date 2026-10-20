@@ -218,17 +218,20 @@ const handleStream = (
   function read() {
     reader?.read().then((result: any) => {
       if (result.done) {
-        // Si al cerrar el stream quedó algo pendiente en el buffer, procesarlo
-        if (buffer && buffer.trim().startsWith('data: ')) {
-          try {
-            const lastObj = JSON.parse(buffer.trim().substring(6)) as Record<string, any>
-            if (lastObj.event === 'message_end') onMessageEnd?.(lastObj as MessageEnd)
-            if (lastObj.event === 'workflow_finished') onWorkflowFinished?.(lastObj as WorkflowFinishedResponse)
-          } catch (e) {
-            // ignorar error de parseo final
+        // Procesar CUALQUIER línea pendiente en el buffer (no solo si empieza con "data: ")
+        if (buffer && buffer.trim()) {
+          const lines = buffer.split('\n')
+          for (const line of lines) {
+            const trimmed = line.trim()
+            if (trimmed.startsWith('data: ')) {
+              try {
+                const obj = JSON.parse(trimmed.substring(6)) as Record<string, any>
+                if (obj.event === 'message_end') onMessageEnd?.(obj as MessageEnd)
+                if (obj.event === 'workflow_finished') onWorkflowFinished?.(obj as WorkflowFinishedResponse)
+              } catch (e) {}
+            }
           }
         }
-        // SIEMPRE marcar como completado al terminar la lectura del stream
         onCompleted?.()
         return
       }
