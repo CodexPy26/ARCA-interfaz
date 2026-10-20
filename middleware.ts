@@ -2,17 +2,14 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-
-const acceptLanguage = request.headers.get('accept-language') || '' 
-
-if (!acceptLanguage || acceptLanguage.includes('*')) {
-  const headers = new Headers(request.headers)
-  headers.set('accept-language', 'es-419,es;q=0.9')
-  request = new NextRequest(request, { headers })
-}
-  
   let response = NextResponse.next({ request })
+  
+  const acceptLanguage = request.headers.get('accept-language') || ''
+  
+  if (!acceptLanguage || acceptLanguage.includes('*')) {
+  }
 
+  // 3. Tu lógica de Supabase (sin cambios)
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -34,7 +31,6 @@ if (!acceptLanguage || acceptLanguage.includes('*')) {
     }
   )
 
-  // Refrescar la sesión (no eliminar este paso)
   await supabase.auth.getUser()
   return response
 }
