@@ -665,12 +665,15 @@ stateRef.current = {
             getChatList().filter(item => item.id !== responseItem.id && item.id !== placeholderAnswerId),
             (draft) => {
               if (!draft.find(item => item.id === questionId)) { draft.push({ ...questionItem }) }
-              draft.push({ ...responseItem })
+
+              draft.push({
+                ...responseItem,
+              })
             },
           )
           setChatList(newListWithAnswer)
+          return
         }
-      }
         // not support show citation
         // responseItem.citation = messageEnd.retriever_resources
         const newListWithAnswer = produce(
