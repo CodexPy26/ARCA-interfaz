@@ -2,14 +2,20 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request })
+  const requestHeaders = new Headers(request.headers)
+  const acceptLanguage = requestHeaders.get('accept-language') || ''
   
-  const acceptLanguage = request.headers.get('accept-language') || ''
-  
-  if (!acceptLanguage || acceptLanguage.includes('*')) {
+  if (!acceptLanguage || acceptLanguage.includes('*') || !/^[a-zA-Z]/.test(acceptLanguage)) {
+    requestHeaders.set('accept-language', 'es-419,es;q=0.9,en;q=0.8')
   }
 
-  // 3. Tu lógica de Supabase (sin cambios)
+  let response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
+
+//Logica de Supabase
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -22,7 +28,11 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
-          response = NextResponse.next({ request })
+          response = NextResponse.next({
+            request: {
+              headers: requestHeaders,
+            },
+          })
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           )
